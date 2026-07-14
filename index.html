@@ -1,48 +1,110 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Conferência de Chassis</title>
 
 <link rel="stylesheet" href="style.css">
 
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<script src="https://unpkg.com/@zxing/browser@latest"></script>
 
 </head>
 
 <body>
 
+<header>
+
 <h1>Conferência de Chassis</h1>
 
-<div class="painel">
+</header>
 
-<p>Total: <span id="total">0</span></p>
+<section class="painel">
 
-<p>Encontrados:
-<span id="ok">0</span></p>
+<div class="card">
 
-<p>Faltando:
-<span id="faltam">0</span></p>
+<h2>Total</h2>
 
-<progress id="barra" value="0" max="100"></progress>
+<span id="total">0</span>
 
 </div>
 
-<input type="file" id="arquivo" accept=".xlsx">
+<div class="card">
+
+<h2>Encontrados</h2>
+
+<span id="encontrados">0</span>
+
+</div>
+
+<div class="card">
+
+<h2>Faltando</h2>
+
+<span id="faltando">0</span>
+
+</div>
+
+<progress id="barra" value="0" max="100"></progress>
+
+</section>
+
+<section>
+
+<input
+type="file"
+id="excel"
+accept=".xlsx">
+
+<button id="importar">
+
+📄 Importar Planilha
+
+</button>
+
+</section>
+
+<section>
 
 <div id="reader"></div>
 
-<button id="scan">📷 Escanear Veículo</button>
+<button id="scan">
 
-<h2 id="mensagem"></h2>
+📷 Escanear
 
-<button id="faltantesBtn">
-Ver veículos faltantes
+</button>
+
+</section>
+
+<section>
+
+<h2 id="status">
+
+Nenhuma planilha carregada
+
+</h2>
+
+</section>
+
+<section>
+
+<button id="faltantes">
+
+📋 Ver Faltantes
+
 </button>
 
 <ul id="lista"></ul>
+
+</section>
+
+<script src="excel.js"></script>
+
+<script src="scanner.js"></script>
 
 <script src="app.js"></script>
 
