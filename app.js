@@ -122,3 +122,66 @@ document.getElementById("faltantesBtn").onclick=function(){
     });
 
 };
+const botaoScan = document.getElementById("scan");
+
+let scannerAtivo = false;
+let html5QrCode;
+
+botaoScan.addEventListener("click", iniciarScanner);
+
+async function iniciarScanner(){
+
+    if(scannerAtivo) return;
+
+    scannerAtivo = true;
+
+    html5QrCode = new Html5Qrcode("reader");
+
+    try{
+
+        const cameras = await Html5Qrcode.getCameras();
+
+        if(cameras.length===0){
+
+            alert("Nenhuma câmera encontrada.");
+
+            scannerAtivo=false;
+
+            return;
+
+        }
+
+        await html5QrCode.start(
+
+            cameras[0].id,
+
+            {
+                fps:10,
+                qrbox:250
+            },
+
+            codigoLido,
+
+            ()=>{}
+
+        );
+
+    }catch(e){
+
+        alert(e);
+
+        scannerAtivo=false;
+
+    }
+
+}
+
+function codigoLido(texto){
+
+    conferirChassi(texto);
+
+    html5QrCode.stop();
+
+    scannerAtivo=false;
+
+}
