@@ -1,18 +1,16 @@
 // =========================
-// BANCO DE CHASSIS
+// excel.js
 // =========================
 
+// Banco de chassis
 const banco = new Map();
+const ordem = [];
 
 let total = 0;
 let encontrados = 0;
 
-// =========================
-// ELEMENTOS DA TELA
-// =========================
-
+// Elementos da tela
 const excelInput = document.getElementById("excel");
-
 const totalLabel = document.getElementById("total");
 const encontradosLabel = document.getElementById("encontrados");
 const faltandoLabel = document.getElementById("faltando");
@@ -20,55 +18,46 @@ const barra = document.getElementById("barra");
 const status = document.getElementById("status");
 const lista = document.getElementById("lista");
 
-// =========================
-// IMPORTAR PLANILHA
-// =========================
+// Importar planilha
+document.getElementById("importar").addEventListener("click", () => {
 
-document
-.getElementById("importar")
-.addEventListener("click", () => {
-
-    if (excelInput.files.length === 0) {
-
-        alert("Selecione a planilha.");
-
+    if (!excelInput.files.length) {
+        alert("Selecione uma planilha.");
         return;
-
     }
 
     importarExcel(excelInput.files[0]);
 
 });
 
-// =========================
-
-function importarExcel(file){
+function importarExcel(file) {
 
     const reader = new FileReader();
 
-    reader.onload = function(e){
+    reader.onload = function (e) {
+
+        banco.clear();
+        ordem.length = 0;
+        encontrados = 0;
 
         const data = new Uint8Array(e.target.result);
 
-        const workbook = XLSX.read(data,{type:"array"});
+        const workbook = XLSX.read(data, { type: "array" });
 
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
         const dados = XLSX.utils.sheet_to_json(sheet);
 
-        banco.clear();
+        dados.forEach(linha => {
 
-        encontrados = 0;
+            let chassi = String(linha["Chassi"] || "")
+                .trim()
+                .toUpperCase();
 
-        dados.forEach(linha=>{
+            if (!chassi) return;
 
-            const chassi = String(linha["Chassi"] || "").trim();
-
-            if(chassi.length>0){
-
-                banco.set(chassi,false);
-
-            }
+            banco.set(chassi, false);
+            ordem.push(chassi);
 
         });
 
@@ -76,88 +65,77 @@ function importarExcel(file){
 
         atualizarPainel();
 
-        status.className="ok";
+        status.className = "ok";
+        status.textContent = "✅ Planilha carregada.";
 
-        status.innerHTML="✅ Planilha carregada.";
+        lista.innerHTML = "";
 
-        lista.innerHTML="";
-
-    }
+    };
 
     reader.readAsArrayBuffer(file);
 
 }
 
-// =========================
+function atualizarPainel() {
 
-function atualizarPainel(){
-
-    totalLabel.innerHTML = total;
-
-    encontradosLabel.innerHTML = encontrados;
-
-    faltandoLabel.innerHTML = total - encontrados;
+    totalLabel.textContent = total;
+    encontradosLabel.textContent = encontrados;
+    faltandoLabel.textContent = total - encontrados;
 
     barra.max = total;
-
     barra.value = encontrados;
 
 }
 
-// =========================
+function conferir(chassi) {
 
-function conferir(chassi){
+    chassi = chassi.trim().toUpperCase();
 
-    chassi = chassi.trim();
+    // Remove espaços invisíveis
+    chassi = chassi.replace(/\s+/g, "");
 
-    if(!banco.has(chassi)){
+    if (!banco.has(chassi)) {
 
-        status.className="erro";
+        status.className = "erro";
+        status.textContent = "🔴 Chassi não encontrado.";
 
-        status.innerHTML="🔴 Chassi não encontrado.";
-
-        return;
-
-    }
-
-    if(banco.get(chassi)){
-
-        status.className="alerta";
-
-        status.innerHTML="🟡 Veículo já conferido.";
-
-        return;
+        return false;
 
     }
 
-    banco.set(chassi,true);
+    if (banco.get(chassi)) {
+
+        status.className = "alerta";
+        status.textContent = "🟡 Veículo já conferido.";
+
+        return false;
+
+    }
+
+    banco.set(chassi, true);
 
     encontrados++;
 
     atualizarPainel();
 
-    status.className="ok";
+    status.className = "ok";
+    status.textContent = "🟢 Veículo encontrado.";
 
-    status.innerHTML="🟢 Veículo encontrado.";
+    return true;
 
 }
 
-// =========================
+// Lista de faltantes
+document.getElementById("faltantes").addEventListener("click", () => {
 
-document
-.getElementById("faltantes")
-.addEventListener("click",()=>{
+    lista.innerHTML = "";
 
-    lista.innerHTML="";
+    ordem.forEach(chassi => {
 
-    banco.forEach((valor,chassi)=>{
+        if (!banco.get(chassi)) {
 
-        if(!valor){
-
-            const li=document.createElement("li");
-
-            li.textContent=chassi;
-
+            const li = document.createElement("li");
+            li.textContent = chassi;
             lista.appendChild(li);
 
         }
@@ -165,3 +143,20 @@ document
     });
 
 });
+
+// Nova conferência
+function novaConferencia() {
+
+    banco.forEach((v, chave) => {
+        banco.set(chave, false);
+    });
+
+    encontrados = 0;
+
+    atualizarPainel();
+
+    lista.innerHTML = "";
+
+    status.textContent = "Nova conferência iniciada.";
+
+}
